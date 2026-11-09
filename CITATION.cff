@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "Please cite Joshua et al. (2007) for the methods and record this software version/commit in your analysis."
-title: "Isolation Score for MATLAB"
+title: "Isolation Quality of Neurons After Spike Sorting"
 type: software
 version: 1.0.0
 date-released: 2026-11-09
 license: MIT
-repository-code: "https://github.com/NirvikNU/isolation_score4github"
+repository-code: "https://github.com/NirvikNU/isolation_score"
 authors:
   - family-names: Sinha
     given-names: Nirvik

@@ -7,7 +7,7 @@ and `ErrorMessage` directly in that unit's diagnostics.
 | Status/error | Meaning and next check |
 | --- | --- |
 | `ok` | Metrics calculated; inspect biological QC separately |
-| `ok_low_population` | A full population is below the reporting threshold; no downsampling occurred |
+| `ok_low_population` | The AP or noise count is below the reporting threshold; inspect the available events |
 | `no_stable_trials` | No retained interval was supplied |
 | `insufficient_eligible_spikes` | Fewer than two targets survived interval/edge eligibility |
 | `flat_template` | No nonzero target phase could be found |
@@ -20,7 +20,7 @@ and `ErrorMessage` directly in that unit's diagnostics.
 | `isolation:NativeShape` | Native platform/feature-width/K constraints are not met |
 | `isolation:NativeMissing` | Build the optional executables in `native/` |
 | `isolation:CUDA` / `isolation:NativeFailed` | Check toolkit/runtime, driver, GPU availability, memory and the included native error text |
-| `isolation:MemoryBudget` / `isolation:DiskSpace` | Required full populations exceed configured/available resources |
+| `isolation:MemoryBudget` / `isolation:DiskSpace` | Waveform storage or calculation exceeds configured/available resources |
 | `isolation:SpikeIndices` | Duplicate, unsorted or out-of-range spike indices; fix the adapter with provenance |
 
 Raw results additionally report `InputSpikes`, `EligibleSpikes`, `EligibleNoise`,

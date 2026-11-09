@@ -1,5 +1,5 @@
 function cfg = isolation_config(options)
-% Full-population calculation settings. No constants script needed.
+% Validated waveform preparation, scoring and execution settings.
 % All APs fix preprocessing/SNR; all AP/noise events enter the metrics.
 % Native requires Windows, 144 features and K=31. DisplayEvents limits
 % diagnostic waveform storage ONLY, never scoring populations.
@@ -16,7 +16,7 @@ cfg=struct('SampleRateHz',30000,'BinSamples',36,'SplitRate',4,'K',31, ...
 names=fieldnames(options);
 for i=1:numel(names)
     assert(isfield(cfg,names{i}),'isolation:UnknownOption', ...
-        'Unknown/retired setting %s. See isolation_config for full-population options.',names{i});
+        'Unknown setting %s. See isolation.defaults for available options.',names{i});
     cfg.(names{i})=options.(names{i});
 end
 positive={'SampleRateHz','BinSamples','SplitRate','K','DistanceScale', ...

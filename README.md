@@ -1,19 +1,19 @@
-# Isolation Score for MATLAB
+# Isolation Quality of Neurons After Spike Sorting
 
-[![MATLAB tests](https://github.com/NirvikNU/isolation_score4github/actions/workflows/matlab.yml/badge.svg)](https://github.com/NirvikNU/isolation_score4github/actions/workflows/matlab.yml)
+[![MATLAB tests](https://github.com/NirvikNU/isolation_score/actions/workflows/matlab.yml/badge.svg)](https://github.com/NirvikNU/isolation_score/actions/workflows/matlab.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Calculate extracellular spike isolation quality using the approach of
-[Joshua, Elias, Levine & Bergman (2007)](https://doi.org/10.1016/j.jneumeth.2007.03.012).
-The package returns isolation score (IS), false-negative and false-positive
-classifier scores, and two signal-to-noise measures. **Every eligible AP and
-noise event enters the metrics.** No event sampling or PCA dimension reduction
-is used for scoring.
+Assess how well a sorted neuronal unit is separated from background activity
+in extracellular recordings. This MATLAB package calculates isolation score
+(IS) using the approach of
+[Joshua, Elias, Levine & Bergman (2007)](https://doi.org/10.1016/j.jneumeth.2007.03.012),
+alongside false-negative and false-positive classifier scores, two
+signal-to-noise measures, and diagnostic plots.
 
-This is an independently maintained implementation, with explicit preprocessing
-and numerical choices documented in [Methods](docs/methods.md). It is not the
-paper authors' official software. An isolation score is a quality indicator,
-not ground-truth evidence that a cluster contains a single neuron.
+Supply a raw recording with sorted spike times and stable recording intervals,
+or provide prepared spike and noise waveforms. Use the scores together with
+waveform, stability and interspike-interval plots to evaluate unit quality.
+See [Methods](docs/methods.md) for calculation definitions and interpretation.
 
 ## Start in one minute
 
@@ -21,7 +21,7 @@ Download this repository or clone it, open MATLAB, and add **only its root** to
 the path. Do not use `genpath`: the internal functions are intentionally private.
 
 ```matlab
-addpath('/path/to/isolation_score4github');
+addpath('/path/to/isolation_score');
 recording = isolation.demoData;  % Synthetic data; no download required.
 options = struct('Backend','matlab','CaptureQC',true);
 [result, diagnostics] = isolation.score(recording, options);
@@ -89,8 +89,8 @@ Unit and summary plots are independent. Capture diagnostics only for units you
 want to inspect. To inspect the highest/lowest IS after a batch, identify their
 indices in `results`, then call `isolation.score` for those recordings with
 `CaptureQC=true`; this explicitly recomputes those selected units. Saved QC can
-be replotted without computation. Summaries do not load recordings and do not
-silently add other sessions.
+be replotted without computation. Summaries include exactly the result cells
+you supply, allowing you to group units by session or across sessions.
 
 For resume, attach `jobs(k).Result = results{k}` and optionally
 `jobs(k).Diagnostics = diagnostics{k}` before calling `batch` again. Complete
@@ -110,9 +110,10 @@ recompute deliberately after such changes. See [the runnable batch example](exam
 - Native acceleration currently supports **64-bit Windows, an AVX2 CPU, 144
   waveform coordinates, K=31, and an NVIDIA CUDA GPU**. It combines CPU FN/FP
   with GPU IS. Build from source using [native/README.md](native/README.md).
-  Binaries, recordings and the paper PDF are not distributed.
-- Full populations can be large. Pair calculations are blocked; native IS
-  streams noise tiles through the GPU. Memory/disk limits remain explicit.
+  The build instructions list the compiler and toolkit requirements.
+- For large recordings, pair calculations are processed in blocks and native
+  IS streams noise tiles through the GPU. Configure memory and disk limits
+  for your machine.
   `DisplayEvents` affects stored plotting subsets only.
 - Native IS defaults to mixed precision; use `ISPrecision='double'` for FP64
   affinity arithmetic. The precision is recorded in the result metadata.
@@ -130,20 +131,22 @@ batch ETA is a rough average of completed jobs, not a completion guarantee.
 | `fpScore` | `Nfp / Ns`; classifier estimate defined in the paper |
 | `snrAP` | Mean AP peak-to-peak amplitude / pooled waveform residual SD |
 | `snrBeforeAp` | Same amplitude / pre-spike baseline SD; NaN for waveform-only input |
-| `NumAPs`, `NumNoise` | Full populations entering metric calculation |
+| `NumAPs`, `NumNoise` | Numbers of target spikes and noise events used |
 | `Status` | Calculation outcome; inspect before interpreting any metric |
 | `MetricStatistics` | Population counts, low-population flags, backend and precision |
 | `MetricVersion` | Calculation definition: `Joshua2007-full-v1` |
 
-The SNRs have **no division by five**. `ok_low_population` is an inspection flag,
-not a failed calculation. Undefined metrics remain NaN; the threshold is never
-lowered to force more noise events. Details and limitations are in
+`ok_low_population` flags a result supported by few spike or noise events.
+Undefined metrics are reported as NaN. The SNR definitions, noise-detection
+threshold and other interpretation details are described in
 [Methods](docs/methods.md) and [Troubleshooting](docs/troubleshooting.md).
 
 The unit figure shows target/noise waveforms, joint PCA for display, amplitude
 over retained time blocks, within-segment ISIs, AP affinities, a thresholded
 trace, population counts, and consistency checks. Green time spans are retained
 stable blocks; gray spans are excluded; dotted lines mark file boundaries.
+The spike and noise waveform panels share the same amplitude scale for direct
+visual comparison.
 
 ## Test and contribute
 
@@ -172,3 +175,4 @@ Also record this repository's release/commit, options and backend in your
 analysis. [CITATION.cff](CITATION.cff) provides citation metadata.
 
 Released under the [MIT License](LICENSE). Maintained by Nirvik Sinha.
+This is an independent implementation of the cited method.

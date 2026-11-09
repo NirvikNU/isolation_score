@@ -25,7 +25,7 @@ end
 teal=[0 .4 .45]; orange=[.8 .32 .12];
 layout=tiledlayout(fig,3,3,'Padding','compact','TileSpacing','loose');
 title(layout,sprintf('%s | IS %.3f | %s',name,r.IS,strrep(r.Status,'_',' ')),'Interpreter','none','FontSize',17);
-ax=nexttile(layout); hold(ax,'on');
+ax=nexttile(layout); hold(ax,'on'); targetWaveformAxis=ax;
 % First row: waveforms actually scored, plus their shared display projection.
 plot(ax,t,q.TargetWaveforms','Color',[.78 .86 .87],'LineWidth',.4);
 plot(ax,t,q.TargetMean,'Color',teal,'LineWidth',2.3); xline(ax,0,':');
@@ -36,6 +36,12 @@ plot(ax,t,q.NoiseWaveforms','Color',[.91 .81 .74],'LineWidth',.4);
 plot(ax,t,q.NoiseMean,'Color',orange,'LineWidth',2.3); xline(ax,0,':');
 title(ax,sprintf('Display subset: %d shown / %d noise',size(q.NoiseWaveforms,1),r.NumNoise));
 xlabel(ax,'Time relative to normalized trough (ms)'); ylabel(ax,'Polarity-normalized amplitude'); grid(ax,'on');
+% A shared range makes AP/noise amplitudes directly comparable; include the
+% full automatic range of both panels, then keep them linked during zooming.
+sharedAmplitudeLimits=[min(targetWaveformAxis.YLim(1),ax.YLim(1)), ...
+    max(targetWaveformAxis.YLim(2),ax.YLim(2))];
+ylim(targetWaveformAxis,sharedAmplitudeLimits); ylim(ax,sharedAmplitudeLimits);
+linkaxes([targetWaveformAxis ax],'y');
 ax=nexttile(layout); hold(ax,'on');
 if ~isempty(q.PCATarget)
     hN=scatter(ax,q.PCANoise(:,1),q.PCANoise(:,2),7,orange,'filled','MarkerFaceAlpha',.22);

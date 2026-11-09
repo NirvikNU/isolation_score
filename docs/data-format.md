@@ -63,12 +63,11 @@ boundaries to enforce those rules itself.
 must be real, finite, nonsparse and use the same coordinates and units.
 An empty population must retain its width, for example `zeros(0,144)`.
 
-This lower-level entry point deliberately performs no filtering, interpolation,
-alignment, polarity choice, per-event centering or threshold detection. The
-caller must apply the same preprocessing to both populations. For equivalence
-with the raw-data pipeline, follow [Methods](methods.md) exactly, including
-event selection. Do not duplicate or oversample waveforms to change the class
-ratio: the ratio is part of the metric's input population.
+Prepare both populations using the same filtering, interpolation, alignment,
+polarity and per-event centering before calling this interface. To match the
+raw-recording interface, follow the preprocessing and event selection in
+[Methods](methods.md). Each row should represent a distinct detected event;
+the relative AP/noise counts affect the metrics.
 
 MATLAB supports arbitrary positive feature width; native acceleration requires
 144 columns. The raw pipeline produces `BinSamples × SplitRate` columns (144
@@ -77,7 +76,7 @@ by default). A different sample rate changes the physical duration of a fixed
 
 Pre-spike SNR is NaN because raw baseline windows are absent. Waveform SNR uses
 all supplied APs. Diagnostic raw traces/stable timelines are unavailable for
-this API; `CaptureQC=true` is rejected rather than suggesting those checks ran.
+this API, so `CaptureQC` must be false.
 
 ## Batch jobs and saved results
 
@@ -86,8 +85,8 @@ zero-argument function handle returning the recording struct. Optional fields
 are `CaptureQC`, `Result`, and `Diagnostics`. Outputs are ordered cell arrays.
 
 Units are processed sequentially; each loader runs at most once per attempted
-job. The package does not discover sessions or cache acquisition channels on
-your behalf. Reuse a loaded signal in your adapter when units share it, or use
+job. Your loader controls session selection and shared-channel caching.
+Reuse a loaded signal in your adapter when units share it, or use
 lazy loaders to limit memory. MATLAB's copy-on-write can share an unchanged
 signal, but modifying a shared array may allocate a copy.
 

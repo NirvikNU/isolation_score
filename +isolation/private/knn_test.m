@@ -32,7 +32,7 @@ if active(1)
             distanceSum=distanceSum+sum(sqrt(d),'all');
         end
     end
-    % Preserve the established Ns^2 normalization, including zero self terms.
+    % The Ns^2 normalization includes zero self terms.
     d0=cfg.DistanceScale*distanceSum/(ns*ns); details.characteristicDistance=d0;
     if ~(isfinite(d0) && d0>0), active(1)=false; details.status='zero_spike_spread'; end
 end

@@ -1,11 +1,11 @@
 # Calculation definitions and implementation choices
 
 The methodological reference is [Joshua et al. (2007)](https://doi.org/10.1016/j.jneumeth.2007.03.012).
-The description below defines this implementation, including choices that
-should be reported alongside scores. This is not a claim that every original
-acquisition or preprocessing detail is reproduced.
+The sections below describe waveform preparation, metric definitions and
+numerical settings. Report these settings alongside scores when comparing
+recordings or implementations.
 
-## Populations and fixed preprocessing
+## Waveform preparation and noise detection
 
 1. Merge physically adjacent stable intervals, retain gaps, and split at every
    acquisition-file boundary. High-pass filter each segment with same-file
@@ -13,7 +13,8 @@ acquisition or preprocessing detail is reproduced.
    passband loss and 10-dB stopband attenuation, applied using `filtfilt`.
 2. Reject edge events that cannot support the complete waveform and alignment
    searches. Default acquisition-edge guard is 20 ms; filter padding is 50 ms.
-3. Use **all eligible APs** to form the initial mean template. Choose its
+3. Form the initial mean template from the eligible action potentials (APs).
+   Choose its
    dominant positive or negative phase once per unit, normalize the entire
    filtered signal to a negative target phase, and determine the shared global
    timing offset. `Polarity` can explicitly select positive/negative instead.
@@ -24,18 +25,16 @@ acquisition or preprocessing detail is reproduced.
 5. At the all-AP mean waveform's trough column, sort AP values. Average the
    weakest `ceil(0.02*Ns)` (least-negative) values and divide by 2. This
    negative value is the noise-detection threshold. The weakest count is at
-   least one. This **2% and 1/2 convention is an explicit implementation
-   setting**, not an adaptive event-ratio rule.
+   least one. `ThresholdFraction` and `ThresholdRatio` control these settings.
 6. Group samples below threshold into excursions (default grouping gap scales
    from four samples at 30 kHz). Take the first minimum in each group and apply
    the same waveform processing. Exclude target centers within a timing
    tolerance scaling from ±2 samples at 30 kHz. Threshold events from other
    units intentionally remain in the background population.
 
-All eligible events are retained. There is no incremental sampling, uncertainty
-stopping rule, or reduction to a fixed AP/noise ratio. Very few noise events
-are reported rather than repaired by changing the threshold. A nonnegative
-threshold is invalid and must be investigated.
+The resulting AP and noise waveforms form the populations used for scoring.
+A nonnegative threshold produces `invalid_noise_threshold`; inspect the
+waveform alignment and polarity when this occurs.
 
 ## Isolation score
 
@@ -61,7 +60,8 @@ affinity to the target population under this preprocessing and detector.
 Classify each event by the majority among its **K=31 nearest other events** in
 the pooled AP/noise population. Every distance uses all waveform coordinates.
 Self is excluded. Exact distance ties give APs priority over noise; within a
-population, original order breaks remaining ties. K is never silently reduced.
+population, original order breaks remaining ties. At least `K+1` pooled events
+are required for these classifier scores.
 
 ```text
 Nfn = number of noise events classified as AP
@@ -78,7 +78,7 @@ comparisons using certified bounds or early rejection.
 
 ## Two SNRs
 
-Let `mu` be the mean of **all** prepared AP waveforms and `p2p=max(mu)-min(mu)`.
+Let `mu` be the mean prepared AP waveform and `p2p=max(mu)-min(mu)`.
 
 - `snrAP = p2p / std((A-mu)(:))`. This pools waveform residual elements and uses
   the sample-SD denominator `Ns*D-1`.
@@ -88,9 +88,8 @@ Let `mu` be the mean of **all** prepared AP waveforms and `p2p=max(mu)-min(mu)`.
   bins; the first target in a segment has no preceding interval and is omitted.
   Baselines cannot cross a stable/file boundary.
 
-There is **no division by five** in either measure. Thus report these SNR
-definitions explicitly when comparing with other implementations. Undefined
-zero-variance baselines or unavailable pre-spike data yield NaN.
+These amplitude-to-standard-deviation ratios define the reported SNRs.
+Undefined zero-variance baselines or unavailable pre-spike data yield NaN.
 
 ## Computation and precision
 
@@ -100,13 +99,13 @@ stores no full all-event distance matrix. A conservative pair-count guard
 prevents accidentally launching impractical reference calculations.
 
 The optional native backend computes FN/FP on an AVX2 CPU using 32 orthonormal
-PCA coordinates as **search bounds only**. Final candidate distances retain all
-144 original coordinates. It never substitutes a reduced-dimensional metric.
+PCA coordinates to bound the neighbor search. Final candidate distances use
+the 144 waveform coordinates.
 GPU IS includes all AP–AP and AP–noise pairs and streams noise chunks. The
 characteristic distance and accumulated sums use FP64. Default `mixed` uses
 FP32 dot products/affinity arithmetic with cancellation safeguards; `double`
-uses FP64 affinity arithmetic. Mixed precision is a numerical approximation,
-not statistical sampling. Record backend and precision from `MetricStatistics`.
+uses FP64 affinity arithmetic. Record backend and precision from
+`MetricStatistics` for reproducibility.
 
 ## Interpretation and limitations
 
@@ -114,9 +113,8 @@ not statistical sampling. Record backend and precision from `MetricStatistics`.
   need at least `K+1` pooled events. Zero AP spread makes IS undefined while
   classifier scores can still be calculated.
 - `MinimumReportedSpikes=100` flags either population below 100. This is a QC
-  heuristic, **not** a minimum population prescribed by the paper or a proof
-  of estimator reliability. Full population scoring does not eliminate
-  detector/label bias or finite-recording uncertainty.
+  heuristic for inspecting small populations. Interpretation also depends on
+  the reliability of spike labels, noise detection and recording duration.
 - Scores depend on event selection, stable periods, feature grid and noise
   definition. Changing those settings changes the quantity being measured.
 - Polarity is fixed per unit, not optimized to maximize IS. Nearly balanced

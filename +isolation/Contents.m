@@ -1,4 +1,4 @@
-% ISOLATION  Full-population extracellular spike isolation metrics.
+% ISOLATION  Evaluate neuronal isolation quality after spike sorting.
 %   score          - Score one raw channel and one target unit.
 %   scoreWaveforms - Score already-prepared AP and noise waveforms.
 %   batch          - Score jobs sequentially; skip complete saved results.

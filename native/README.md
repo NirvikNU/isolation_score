@@ -1,7 +1,8 @@
 # Optional native acceleration
 
-The MATLAB reference backend works without these executables. Native is for
-large full populations; it does not sample events or reduce metric dimensions.
+The optional native backend accelerates scoring for large recordings using
+CPU neighbor searches and GPU affinity calculations. The MATLAB backend can
+be used without these executables.
 
 ## Supported configuration
 
@@ -22,7 +23,7 @@ are deliberately excluded from Git.
 Open an **x64 Native Tools Command Prompt for Visual Studio 2022**, then:
 
 ```bat
-cd /d C:\path\to\isolation_score4github\native
+cd /d C:\path\to\isolation_score\native
 set "CUDA_PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2"
 build.cmd
 ```

@@ -1,5 +1,5 @@
 function events = threshold_event_centers(signal,threshold,maxGap)
-% First minimum in each threshold-excursion group, preserving legacy ties.
+% Use the first minimum in each threshold-excursion group to resolve ties.
 % Gap samples are above threshold, so cannot contain the group's minimum.
 crossings=find(signal(:)<threshold);
 if isempty(crossings), events=zeros(0,1); return; end

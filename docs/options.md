@@ -3,7 +3,7 @@
 `isolation.defaults` returns all current calculation settings. Pass only the
 overrides you need; unknown names are rejected. For raw scoring the actual
 rate is `recording.SampleRateHz`; a supplied option with a different rate is an
-error. No constants script or global variables are required.
+error. Pass settings directly to the scoring function in an options struct.
 
 ## Scientific settings
 
@@ -24,8 +24,8 @@ error. No constants script or global variables are required.
 | `SampleRateHz` | 30000 | Required to agree with raw recording when specified |
 
 Change scientific settings deliberately and record them with your results.
-Native supports feature width 144 and K=31. A threshold change is not a
-computational optimization: it changes the noise population.
+Native supports feature width 144 and K=31. Changing the detection threshold
+changes which events enter the noise population.
 
 ## Execution and diagnostics
 
@@ -45,9 +45,8 @@ computational optimization: it changes the noise population.
 | `DisplayEvents` | 3000 | Maximum displayed/stored waves per population |
 | `Progress` | true | Stage progress; native updates roughly every 10 seconds |
 
-`auto` uses MATLAB within the pair budget and attempts native above it. It does
-not silently sample events or fall back to an unbounded MATLAB run. On systems
-without native support, explicitly select MATLAB and increase `MaxMatlabPairs`
+`auto` uses MATLAB within the pair budget and attempts native above it. On
+systems without native support, explicitly select MATLAB and increase `MaxMatlabPairs`
 only after assessing runtime. `MaxMemoryMB` excludes raw recording storage and
 is a guard, not an operating-system memory reservation.
 
@@ -70,6 +69,6 @@ does **not** reduce scoring cost.
 | `ErrorMode` | `'continue'` | Retain errors and continue, or `'error'` to stop |
 
 Set `jobs(k).CaptureQC` per unit instead of `options.Score.CaptureQC`. Batch
-progress is based on completed jobs, without expensive polling. The first
+progress is based on completed jobs. The first
 unit has no ETA. Job duration includes loading/preprocessing. Populations can
 vary markedly between units, so the estimate may change substantially.

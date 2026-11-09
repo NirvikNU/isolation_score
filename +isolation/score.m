@@ -6,7 +6,7 @@ function [result,diagnostics] = score(recording,options)
 %   All intervals/indices are inclusive, one-based samples in Signal.
 %   Set options.CaptureQC=true for isolation.plotUnit(diagnostics).
 %   Raw data must be an unfiltered single channel. Both AP/noise waveforms
-%   receive the same preprocessing. No event is sampled out of the metrics.
+%   receive the same preprocessing described in docs/methods.md.
 if nargin<2, options=struct; end
 validateattributes(options,{'struct'},{'scalar'});
 [rec,mask,id]=normalize_recording(recording);

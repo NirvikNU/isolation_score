@@ -1,5 +1,5 @@
 function [result,diagnostics] = scoreWaveforms(ap,noise,options)
-%SCOREWAVEFORMS Compute full-population metrics for already-prepared waveforms.
+%SCOREWAVEFORMS Evaluate isolation quality using prepared AP/noise waveforms.
 %   Rows are events; columns are identical waveform coordinates in both
 %   populations. This entry point does NOT filter, align, normalize or select
 %   noise events. See docs/data-format.md before using externally cut waves.
