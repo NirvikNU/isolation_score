@@ -1,0 +1,24 @@
+# Private recordings, saved results, generated figures and compiled products.
+*.mat
+*.bin
+*.dat
+*.npy
+*.npz
+*.pdf
+*.fig
+*.asv
+*.m~
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.mex*
+*.log
+/results/
+/test-results/
+/code-coverage/
+.DS_Store
+Thumbs.db

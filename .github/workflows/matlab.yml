@@ -1,0 +1,24 @@
+name: MATLAB tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Portable MATLAB R2024a
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: matlab-actions/setup-matlab@v3
+        with:
+          release: R2024a
+          products: Signal_Processing_Toolbox
+      - uses: matlab-actions/run-tests@v3
+        with:
+          select-by-folder: tests/portable
+          test-results-junit: test-results/results.xml

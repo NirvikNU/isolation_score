@@ -1,0 +1,43 @@
+function cfg = isolation_config(options)
+% Full-population calculation settings. No constants script needed.
+% All APs fix preprocessing/SNR; all AP/noise events enter the metrics.
+% Native requires Windows, 144 features and K=31. DisplayEvents limits
+% diagnostic waveform storage ONLY, never scoring populations.
+if nargin<1, options=struct; end
+cfg=struct('SampleRateHz',30000,'BinSamples',36,'SplitRate',4,'K',31, ...
+    'DistanceScale',0.1,'ThresholdRatio',2,'ThresholdFraction',0.02, ...
+    'ShiftSearchMs',3.6,'AlignmentSearchMs',4/30,'FilterPaddingMs',50, ...
+    'FileEdgeGuardMs',20,'Polarity','auto','MinimumReportedSpikes',100, ...
+    'DistanceBlockSize',256,'DistanceColumnBlockSize',2048, ...
+    'FeatureBatchSize',4096,'CaptureQC',false,'DisplayEvents',3000, ...
+    'Backend','auto','ISPrecision','mixed','Threads',12, ...
+    'MaxMemoryMB',32768,'MaxMatlabPairs',5e7,'TemporaryDirectory',tempdir, ...
+    'CUDARoot',getenv('CUDA_PATH'),'Progress',true);
+names=fieldnames(options);
+for i=1:numel(names)
+    assert(isfield(cfg,names{i}),'isolation:UnknownOption', ...
+        'Unknown/retired setting %s. See isolation_config for full-population options.',names{i});
+    cfg.(names{i})=options.(names{i});
+end
+positive={'SampleRateHz','BinSamples','SplitRate','K','DistanceScale', ...
+    'ThresholdRatio','ThresholdFraction','FilterPaddingMs','FileEdgeGuardMs', ...
+    'MinimumReportedSpikes','DistanceBlockSize','DistanceColumnBlockSize', ...
+    'FeatureBatchSize','DisplayEvents','Threads','MaxMemoryMB','MaxMatlabPairs'};
+for i=1:numel(positive)
+    validateattributes(cfg.(positive{i}),{'numeric'},{'real','finite','scalar','positive'});
+end
+integers={'BinSamples','SplitRate','K','MinimumReportedSpikes','DistanceBlockSize', ...
+    'DistanceColumnBlockSize','FeatureBatchSize','DisplayEvents','Threads'};
+for i=1:numel(integers), validateattributes(cfg.(integers{i}),{'numeric'},{'integer'}); end
+validateattributes(cfg.ShiftSearchMs,{'numeric'},{'real','finite','scalar','nonnegative'});
+validateattributes(cfg.AlignmentSearchMs,{'numeric'},{'real','finite','scalar','nonnegative'});
+assert(cfg.SampleRateHz>600,'isolation:FilterRate','SampleRateHz must exceed 600 Hz.');
+assert(cfg.ThresholdFraction<=1,'isolation:ThresholdFraction','ThresholdFraction must be <= 1.');
+assert(mod(cfg.K,2)==1,'isolation:K','K must be odd.');
+cfg.Polarity=validatestring(cfg.Polarity,{'auto','negative','positive'});
+cfg.Backend=validatestring(cfg.Backend,{'auto','matlab','native'});
+cfg.ISPrecision=validatestring(cfg.ISPrecision,{'mixed','double'});
+validateattributes(cfg.CaptureQC,{'logical','numeric'},{'scalar','binary'});
+validateattributes(cfg.Progress,{'logical','numeric'},{'scalar','binary'});
+assert(isfolder(cfg.TemporaryDirectory),'isolation:TempFolder','TemporaryDirectory must exist.');
+end
